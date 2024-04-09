@@ -1,56 +1,42 @@
-import fastify, { FastifyPluginAsync, RouteShorthandOptionsWithHandler } from "fastify";
-import { RegisterRequestDTO } from "../dtos/auth.dto";
+import {type RouteShorthandOptionsWithHandler} from 'fastify';
+import {type FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
+import {userAuthRequestDTO} from '../dtos/auth.dto';
+import {loginController, registerController} from '../controllers/auth.controller';
 
-const registreOpts: RouteShorthandOptionsWithHandler = {
-    schema: {
-        body: RegisterRequestDTO
-    },
-    handler: async function (request, reply) {
-        return 'test';
-    }
-}
+export const loginOptions = {
+	schema: {
+		body: userAuthRequestDTO,
+	},
+};
 
-const loginOpts: RouteShorthandOptionsWithHandler = {
-    schema: {
-        body: RegisterRequestDTO
-    },
-    handler: async function (request, reply) {
-        const access_token = request.jwt.sign({ username: 'test' });
-        reply.setCookie('access_token', access_token, {
-            //localhost
-            // domain: 'localhost',
-            path: '/',
-            secure: false,
-            // httpOnly: true,
-            sameSite: 'lax',
+export const registerOptions = {
+	schema: {
+		body: userAuthRequestDTO,
+	},
+};
 
-        })
-        return 'test';
-    }
-}
+const logoutOptions: RouteShorthandOptionsWithHandler = {
+	async handler(request, _reply) {
+		console.log(request.cookies.access_token, 'cookies');
+		return 'test';
+	},
+};
 
-const logoutOpts: RouteShorthandOptionsWithHandler = {
+const authRoutes: FastifyPluginAsyncTypebox = async (fastify, _options): Promise<void> => {
+	fastify.post('/register', registerOptions, registerController);
+	fastify.post('/login', loginOptions, loginController);
+	fastify.get('/logout', {
+		preHandler: fastify.auth([fastify.verifyJwtCookie]),
+		...logoutOptions,
+	});
+	fastify.get('/me', {
+		preHandler: fastify.auth([fastify.verifyJwtCookie]),
+		async handler(request, _reply) {
+			return request.user;
+		},
+	});
+};
 
-    handler: async function (request, reply) {
-        console.log(request.cookies.access_token, 'cookies')
-        return 'test';
-    }
-}
+export const autoPrefix = '/auth';
 
-
-const auth: FastifyPluginAsync = async (fastify, opts): Promise<void> => {
-
-    fastify.post('/register', {
-        handler: async function (request, reply) {
-            return 'test';
-        }
-    })
-    fastify.post('/login', loginOpts)
-    fastify.get('/logout', {
-        preHandler: fastify.auth([fastify.verifyJwtCookie]),
-        ...logoutOpts
-    })
-}
-
-
-export default auth;
+export default authRoutes;
