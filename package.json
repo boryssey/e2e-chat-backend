@@ -14,6 +14,7 @@
     "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
     "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js",
     "generate": "drizzle-kit generate:pg"
+    "migrate": "ts-node scripts/migrate.ts"
   },
   "keywords": [],
   "author": "",
