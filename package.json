@@ -11,17 +11,32 @@
     "start": "npm run build:ts && fastify start -l info dist/app.js",
     "build:ts": "tsc",
     "watch:ts": "tsc -w",
-    "dev": "npm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"npm:watch:ts\" \"npm:dev:start\"",
+    "dev": "pnpm run build:ts && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"pnpm:watch:ts\" \"pnpm:dev:start\"",
     "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js",
     "generate": "drizzle-kit generate:pg"
+    "generate": "drizzle-kit generate:pg",
     "migrate": "ts-node scripts/migrate.ts"
+  },
+  "xo": {
+    "rules": {
+      "capitalized-comments": "off",
+      "import/extensions": "off",
+      "@typescript-eslint/consistent-type-definitions": "off",
+      "@typescript-eslint/naming-convention": "off",
+      "unicorn/filename-case": "off",
+      "n/prefer-global/process": "off",
+      "unicorn/prefer-module": "off"
+    },
+    "ignore": [
+      "scripts"
+    ]
   },
   "keywords": [],
   "author": "",
   "license": "ISC",
   "dependencies": {
     "@fastify/auth": "^4.6.1",
-    "@fastify/autoload": "^5.0.0",
+    "@fastify/autoload": "^5.8.0",
     "@fastify/cookie": "^9.3.1",
     "@fastify/jwt": "^8.0.0",
     "@fastify/sensible": "^5.0.0",
@@ -38,7 +53,9 @@
     "concurrently": "^8.2.2",
     "drizzle-kit": "^0.20.14",
     "fastify-tsconfig": "^2.0.0",
+    "pino-pretty": "^11.0.0",
     "ts-node": "^10.4.0",
-    "typescript": "^5.2.2"
+    "typescript": "^5.2.2",
+    "xo": "^0.58.0"
   }
 }
