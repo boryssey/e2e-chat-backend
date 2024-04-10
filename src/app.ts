@@ -22,10 +22,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
 	fastify.addHook('preHandler', (request, _reply, done) => {
 		request.jwt = fastify.jwt;
-		done();
-	});
-	fastify.addHook('onRequest', async request => {
 		request.fastify = fastify;
+		done();
 	});
 
 	fastify.decorate('verifyJwtCookie', verifyJwtCookie);

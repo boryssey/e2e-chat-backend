@@ -1,7 +1,8 @@
-import {type RouteShorthandOptionsWithHandler} from 'fastify';
 import {type FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
 import {userAuthRequestDTO} from '../dtos/auth.dto';
-import {loginController, registerController} from '../controllers/auth.controller';
+import {
+	loginController, logoutController, meController, registerController,
+} from '../controllers/auth.controller';
 
 export const loginOptions = {
 	schema: {
@@ -15,26 +16,13 @@ export const registerOptions = {
 	},
 };
 
-const logoutOptions: RouteShorthandOptionsWithHandler = {
-	async handler(request, _reply) {
-		console.log(request.cookies.access_token, 'cookies');
-		return 'test';
-	},
-};
-
 const authRoutes: FastifyPluginAsyncTypebox = async (fastify, _options): Promise<void> => {
 	fastify.post('/register', registerOptions, registerController);
 	fastify.post('/login', loginOptions, loginController);
-	fastify.get('/logout', {
-		preHandler: fastify.auth([fastify.verifyJwtCookie]),
-		...logoutOptions,
-	});
+	fastify.get('/logout', {preHandler: fastify.auth([fastify.verifyJwtCookie])}, logoutController);
 	fastify.get('/me', {
 		preHandler: fastify.auth([fastify.verifyJwtCookie]),
-		async handler(request, _reply) {
-			return request.user;
-		},
-	});
+	}, meController);
 };
 
 export const autoPrefix = '/auth';

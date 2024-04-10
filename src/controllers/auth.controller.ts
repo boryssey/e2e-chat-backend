@@ -1,8 +1,8 @@
-import {type FastifyRequest} from 'fastify';
+import {type FastifyReply, type FastifyRequest} from 'fastify';
 import bcrypt from 'bcrypt';
 import {type CookieSerializeOptions} from '@fastify/cookie';
 import {type loginOptions, type registerOptions} from '../routes/auth.route';
-import {createUser, findUserByUsername} from '../services/user.service';
+import {createUser, findUserById, findUserByUsername} from '../services/user.service';
 import {MONTH} from '../utils/constants';
 import {type FastifyReplyTypebox, type FastifyRequestTypebox} from '../utils/types';
 
@@ -22,7 +22,7 @@ export const registerController = async (request: FastifyRequest & FastifyReques
 		}
 
 		const passwordHash = await bcrypt.hash(password, 12);
-		const newUser = await createUser(request.fastify.drizzle, {username, password: passwordHash});
+		const [newUser] = await createUser(request.fastify.drizzle, {username, password: passwordHash});
 		const accessToken = request.jwt.sign(newUser);
 
 		void reply.setCookie('accessToken', accessToken, cookieOptions);
@@ -57,7 +57,7 @@ export const loginController = async (request: FastifyRequest & FastifyRequestTy
 	}
 };
 
-export const logoutController = (request: FastifyRequest, reply: FastifyReplyTypebox<Record<string, unknown>>) => {
+export const logoutController = (_request: FastifyRequest, reply: FastifyReply) => {
 	try {
 		void reply.clearCookie('accessToken', cookieOptions);
 		return reply.status(200).send();
@@ -65,4 +65,14 @@ export const logoutController = (request: FastifyRequest, reply: FastifyReplyTyp
 		console.error(error);
 		return reply.status(500).send({message: 'Internal server error'});
 	}
+};
+
+export const meController = async (request: FastifyRequest & FastifyRequestTypebox<Record<string, unknown>>, reply: FastifyReply) => {
+	const [user] = await findUserById(request.fastify.drizzle, request.user.id);
+	if (!user) {
+		void reply.clearCookie('accessToken', cookieOptions);
+		return reply.status(401).send({message: 'Unauthorized'});
+	}
+
+	return user;
 };

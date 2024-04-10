@@ -7,6 +7,7 @@ import {
 	type FastifyReply,
 	type FastifyRequest,
 } from 'fastify';
+import {type User} from '../schema';
 
 export type FastifyRequestTypebox<TSchema extends FastifySchema> = FastifyRequest<
 RouteGenericInterface,
@@ -25,6 +26,13 @@ ContextConfigDefault,
 TSchema,
 TypeBoxTypeProvider
 >;
+
+declare module '@fastify/jwt' {
+	interface FastifyJWT {
+		payload: {id: number}; // payload type is used for signing and verifying
+		user: Omit<User, 'password'>; // user type is used for request.user
+	}
+}
 
 declare module 'fastify' {
 	interface FastifyRequest {

@@ -1,3 +1,4 @@
+import {getTableColumns} from 'drizzle-orm';
 import {
 	pgTable, serial, text, timestamp,
 } from 'drizzle-orm/pg-core';
@@ -12,3 +13,5 @@ export const usersSchema = pgTable('users', {
 });
 
 export type User = typeof usersSchema.$inferSelect;
+
+export const {password: _, ...userColumnsSanitized} = getTableColumns(usersSchema);
