@@ -6,15 +6,29 @@ import {
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
 import fastifyAuth from '@fastify/auth';
+import cors from '@fastify/cors';
 import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {};
 
+// const errorHandler = ((error: FastifyError, request: FastifyRequest, reply: FastifyReply) => {
+// 	console.error(error);
+// 	console.error('errorHandler');
+// 	return reply.status(500).send({ok: false});
+// });
+
 const app: FastifyPluginAsync<AppOptions> = async (
 	fastify,
 	options_,
 ): Promise<void> => {
+	await fastify.register(cors, {
+		origin: 'http://localhost:3001',
+		methods: ['GET', 'POST', 'PUT', 'DELETE'],
+		credentials: true,
+		allowedHeaders: ['Content-Type', 'Authorization'],
+	});
+	// fastify.setErrorHandler(errorHandler);
 	await fastify.register(fastifyCookie);
 	await fastify.register(fastifyJWT, {
 		secret: process.env.JWT_SECRET!,

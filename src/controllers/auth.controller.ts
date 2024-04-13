@@ -8,6 +8,7 @@ import {type FastifyReplyTypebox, type FastifyRequestTypebox} from '../utils/typ
 
 const cookieOptions: CookieSerializeOptions = {
 	path: '/',
+	domain: 'localhost',
 	secure: false,
 	sameSite: 'lax',
 	maxAge: MONTH,

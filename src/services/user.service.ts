@@ -8,4 +8,6 @@ export const findUserById = async (drizzle: DrizzleType, id: number) => drizzle.
 	...userColumnsSanitized,
 }).from(usersSchema).where(eq(usersSchema.id, id)).limit(1);
 
-export const createUser = async (drizzle: DrizzleType, newuser: {username: string; password: string}) => drizzle.insert(usersSchema).values({...newuser}).returning();
+export const createUser = async (drizzle: DrizzleType, newuser: {username: string; password: string}) => drizzle.insert(usersSchema).values({...newuser}).returning({
+	...userColumnsSanitized,
+});
