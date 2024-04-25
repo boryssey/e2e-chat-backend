@@ -8,7 +8,6 @@ export const usersSchema = pgTable('users', {
 	username: text('username').notNull(),
 	password: text('password').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
-	updated_at: timestamp('updated_at').defaultNow(),
 	deleted_at: timestamp('deleted_at'),
 });
 

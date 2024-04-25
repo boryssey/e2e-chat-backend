@@ -7,6 +7,7 @@ import {
 	type FastifyReply,
 	type FastifyRequest,
 } from 'fastify';
+import {type Server} from 'socket.io';
 import {type User} from '../schema';
 
 export type FastifyRequestTypebox<TSchema extends FastifySchema> = FastifyRequest<
@@ -45,6 +46,8 @@ declare module 'fastify' {
 			reply: FastifyReply,
 			done: HookHandlerDoneFunction
 		) => void;
+		io: Server;
+
 	}
 }
 
