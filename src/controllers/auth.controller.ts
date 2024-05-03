@@ -17,7 +17,8 @@ const cookieOptions: CookieSerializeOptions = {
 export const registerController = async (request: FastifyRequest & FastifyRequestTypebox<typeof registerOptions.schema>, reply: FastifyReplyTypebox<Record<string, unknown>>) => {
 	try {
 		const {username, password} = request.body;
-		const existingUser = await findUserByUsername(request.fastify.drizzle, username);
+		const [existingUser] = await findUserByUsername(request.fastify.drizzle, username);
+		console.log('🚀 ~ registerController ~ existingUser:', existingUser);
 		if (existingUser) {
 			return await reply.status(400).send({message: 'User already exists'});
 		}
@@ -70,10 +71,12 @@ export const logoutController = (_request: FastifyRequest, reply: FastifyReply) 
 
 export const meController = async (request: FastifyRequest & FastifyRequestTypebox<Record<string, unknown>>, reply: FastifyReply) => {
 	const [user] = await findUserById(request.fastify.drizzle, request.user.id);
+	console.log(user, 'user in /me');
 	if (!user) {
-		void reply.clearCookie('accessToken', cookieOptions);
-		return reply.status(401).send({message: 'Unauthorized'});
+		console.warn('no user, clearing cookie');
+		return reply.clearCookie('accessToken', cookieOptions).status(401).send({message: 'Unauthorized'});
+		// return reply.status(401).send({message: 'Unauthorized'});
 	}
 
-	return user;
+	return reply.status(200).send(user);
 };

@@ -10,9 +10,13 @@ import cors from '@fastify/cors';
 import fastifyIO from 'fastify-socket.io';
 import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
+import {keyBundleSchema, oneTimeKeysSchema, type User} from './schema';
 
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {};
+process.env.DEBUG = 'engine,socket.io*';
+
+const savedKeyBundles: Record<string, any> = {};
 
 const app: FastifyPluginAsync<AppOptions> = async (
 	fastify,
@@ -20,7 +24,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 ): Promise<void> => {
 	await fastify.register(cors, {
 		origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
-		methods: ['GET', 'POST', 'PUT', 'DELETE'],
+		methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
 		credentials: true,
 		allowedHeaders: ['Content-Type', 'Authorization'],
 	});
@@ -29,7 +33,32 @@ const app: FastifyPluginAsync<AppOptions> = async (
 		secret: process.env.JWT_SECRET!,
 	});
 
-	await fastify.register(fastifyIO);
+	await fastify.register(fastifyIO, {
+		cors: {
+
+			origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+			methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
+			credentials: true,
+			allowedHeaders: ['Content-Type', 'Authorization'],
+		},
+		allowRequest(request, callback) {
+			if (!request.headers.cookie) {
+				callback(null, false);
+				return;
+			}
+
+			const cookies = fastifyCookie.parse(request.headers.cookie);
+			if (!cookies.accessToken) {
+				callback(null, false);
+				return;
+			}
+
+			const user = fastify.jwt.decode<Omit<User, 'password'>>(cookies.accessToken);
+			request.session = user!;
+			callback(null, true);
+		},
+
+	});
 
 	fastify.addHook('preHandler', (request, _reply, done) => {
 		request.jwt = fastify.jwt;
@@ -41,8 +70,47 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	fastify.ready().then(() => {
 		console.log('ready');
 		fastify.io.on('connection', socket => {
+			console.log(socket.request.session, 'session data');
+			// socket.user = socket.handshake.session;
+			socket.data.user = socket.request.session!;
 			console.log('connected');
 			socket.emit('hello', {hello: 'world'});
+			socket.on('keyBundle:save', async (data: any) => {
+				console.log('saveKeyBundle', data);
+				// savedKeyBundles[socket.username!] = socket.keyBundle;
+				const keyBundle = {
+					user_id: socket.data.user.id,
+					identity_pub_key: data.keyBundle.identityPubKey as ArrayBuffer,
+					signed_pre_key_id: data.keyBundle.signedPreKey.keyId as number,
+					signed_pre_key_signature: data.keyBundle.signedPreKey.signature as ArrayBuffer,
+					signed_pre_key_pub_key: data.keyBundle.signedPreKey.publicKey as ArrayBuffer,
+					registration_id: data.keyBundle.registrationId as number,
+				};
+				const saveBundleResult = await fastify.drizzle.transaction(async tx => {
+					const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
+					const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
+						key_bundle_id: newKeyBundle.id,
+						key_id: data.keyBundle.oneTimePreKeys[0].keyId as number,
+						pub_key: data.keyBundle.oneTimePreKeys[0].publicKey as ArrayBuffer,
+					}).returning();
+					return {
+						keyBundle: newKeyBundle,
+						oneTimeKey: newOneTimeKey,
+					};
+				});
+				console.log(saveBundleResult, 'transaction result');
+			});
+			socket.on('message:send', async (data: any) => {
+				console.log('message:send', data);
+				const sockets = await fastify.io.fetchSockets();
+				const recipientSocketId = sockets.find(socket => socket.data.user.username === data.to);
+				if (!recipientSocketId) {
+					console.log('recipient not found');
+					return;
+				}
+
+				recipientSocketId.emit('message:receive', {from: socket.data.user.username, ...data});
+			});
 		},
 		);
 	}, () => {

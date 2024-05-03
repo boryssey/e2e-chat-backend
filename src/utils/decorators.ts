@@ -1,7 +1,7 @@
 import {type FastifyReply, type FastifyRequest, type HookHandlerDoneFunction} from 'fastify';
 import {type User} from '../schema';
 
-export const verifyJwtCookie = async (request: FastifyRequest, reply: FastifyReply, done: HookHandlerDoneFunction) => {
+export const verifyJwtCookie = (request: FastifyRequest, reply: FastifyReply, done: HookHandlerDoneFunction) => {
 	try {
 		const {accessToken} = request.cookies;
 		if (!accessToken) {

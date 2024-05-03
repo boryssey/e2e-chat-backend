@@ -46,9 +46,14 @@ declare module 'fastify' {
 			reply: FastifyReply,
 			done: HookHandlerDoneFunction
 		) => void;
-		io: Server;
+		io: Server<any, any, any, {user: Omit<User, 'password'>}>;
 
 	}
 }
 
+declare module 'http' {
+	interface IncomingMessage {
+		session?: Omit<User, 'password'>;
+	}
+}
 export type AppOptions = Record<string, unknown> & FastifyServerOptions & Partial<AutoloadPluginOptions>;
