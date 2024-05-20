@@ -11,3 +11,11 @@ export function getEnv(): 'test' | 'development' | 'production' {
 		}
 	}
 }
+
+export const groupBy = <T, K extends keyof any>(list: T[], getKey: (item: T) => K) =>
+	list.reduce<Record<K, T[]>>((previous, currentItem) => {
+		const group = getKey(currentItem);
+		previous[group] ||= [];
+		previous[group].push(currentItem);
+		return previous;
+	}, {} as Record<K, T[]>); // eslint-disable-line @typescript-eslint/prefer-reduce-type-parameter

@@ -11,6 +11,11 @@ import fastifyIO from 'fastify-socket.io';
 import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
 import {keyBundleSchema, oneTimeKeysSchema, type User} from './schema';
+import {findUserByUsername} from './services/user.service';
+import {
+	deleteReceivedMessages, getStoredMessagesByUser, groupStoredMessagesBySender, storeMessage,
+} from './services/message.service';
+import {validateMessageReceivedRequest, validateSendMessageRequest} from './dtos/socketEvents.dto';
 
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {};
@@ -69,10 +74,21 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	fastify.decorate('verifyJwtCookie', verifyJwtCookie);
 	fastify.ready().then(() => {
 		console.log('ready');
-		fastify.io.on('connection', socket => {
+		fastify.io.on('connection', async socket => {
+			// get messages for the user
+			// emit stored messages
+
 			console.log(socket.request.session, 'session data');
 			// socket.user = socket.handshake.session;
 			socket.data.user = socket.request.session!;
+			try {
+				const savedMessagesForUser = groupStoredMessagesBySender(await getStoredMessagesByUser(fastify.drizzle, socket.data.user.id));
+				console.log('🚀 ~ fastify.ready ~ savedMessagesForUser:', savedMessagesForUser);
+				socket.emit('messages:stored', savedMessagesForUser);
+			} catch (error) {
+				console.error(error);
+			}
+
 			console.log('connected');
 			socket.emit('hello', {hello: 'world'});
 			socket.on('keyBundle:save', async (data: any) => {
@@ -100,16 +116,45 @@ const app: FastifyPluginAsync<AppOptions> = async (
 				});
 				console.log(saveBundleResult, 'transaction result');
 			});
-			socket.on('message:send', async (data: any) => {
-				console.log('message:send', data);
-				const sockets = await fastify.io.fetchSockets();
-				const recipientSocketId = sockets.find(socket => socket.data.user.username === data.to);
-				if (!recipientSocketId) {
-					console.log('recipient not found');
+			socket.on('message:send', async (data: any, callback: (data: any) => void) => {
+				const isMessageValid = validateSendMessageRequest(data);
+				if (!isMessageValid) {
+					callback({error: 'Invalid message'});
 					return;
 				}
 
-				recipientSocketId.emit('message:receive', {from: socket.data.user.username, ...data});
+				const [recipient] = await findUserByUsername(fastify.drizzle, data.to);
+				if (!recipient) {
+					console.log('recipient not found');
+					callback({error: 'Recipient not found'});
+					return;
+				}
+
+				const [savedMessage] = await storeMessage(fastify.drizzle, {
+					from_user_id: socket.data.user.id,
+					to_user_id: recipient.id,
+					message: data.message,
+					timestamp: new Date(data.timestamp),
+				});
+
+				const sockets = await fastify.io.fetchSockets();
+				const recipientSocketId = sockets.find(socket => socket.data.user.username === data.to);
+				if (recipientSocketId) {
+					recipientSocketId.emit('message:receive', {from_user_username: socket.data.user.username, ...savedMessage});
+					return;
+				}
+
+				console.log(recipient, 'recipiasync ent');
+			});
+			socket.on('message:ack', async (data: any) => {
+				console.log('message:ack', data);
+				const isEventValid = validateMessageReceivedRequest(data);
+				if (!isEventValid) {
+					return;
+				}
+
+				await deleteReceivedMessages(fastify.drizzle, socket.data.user.id, data.lastReceivedMessageId);
+				// delete messages from db where id < data.id and to_user_id = socket.user.id
 			});
 		},
 		);

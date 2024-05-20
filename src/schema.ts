@@ -1,9 +1,16 @@
 import {getTableColumns} from 'drizzle-orm';
 import {
+	jsonb,
 	customType,
 	integer,
 	pgTable, serial, text, timestamp,
 } from 'drizzle-orm/pg-core';
+
+const bytea = customType<{data: ArrayBuffer; notNull: false; default: false}>({
+	dataType() {
+		return 'bytea';
+	},
+});
 
 export const usersSchema = pgTable('users', {
 	id: serial('id').unique(),
@@ -14,12 +21,6 @@ export const usersSchema = pgTable('users', {
 });
 
 export type User = typeof usersSchema.$inferSelect;
-
-const bytea = customType<{data: ArrayBuffer; notNull: false; default: false}>({
-	dataType() {
-		return 'bytea';
-	},
-});
 
 export const keyBundleSchema = pgTable('key_bundles', {
 	id: serial('id').unique(),
@@ -38,5 +39,15 @@ export const oneTimeKeysSchema = pgTable('one_time_keys', {
 	key_id: integer('key_id').notNull(),
 	pub_key: bytea('pub_key').notNull(),
 });
+
+export const messageSchema = pgTable('messages', {
+	id: serial('id').unique(),
+	from_user_id: integer('from_user_id').references(() => usersSchema.id).notNull(),
+	to_user_id: integer('to_user_id').references(() => usersSchema.id).notNull(),
+	message: jsonb('message').notNull(),
+	timestamp: timestamp('timestamp').notNull(),
+});
+
+export type Message = typeof messageSchema.$inferSelect;
 
 export const {password: _, ...userColumnsSanitized} = getTableColumns(usersSchema);

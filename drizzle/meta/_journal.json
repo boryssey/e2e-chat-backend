@@ -43,6 +43,13 @@
       "when": 1714483792679,
       "tag": "0005_high_jocasta",
       "breakpoints": true
+    },
+    {
+      "idx": 6,
+      "version": "5",
+      "when": 1715946736426,
+      "tag": "0006_useful_norrin_radd",
+      "breakpoints": true
     }
   ]
 }

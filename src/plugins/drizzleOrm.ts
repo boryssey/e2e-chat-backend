@@ -14,7 +14,7 @@ export default fp(async (fastify, _options) => {
 			// ssl: true,
 			ssl: {rejectUnauthorized: false},
 		});
-		const client = drizzle(queryClient, {schema});
+		const client = drizzle(queryClient, {schema, logger: true});
 		fastify.decorate('drizzle', client);
 	}
 }, {

@@ -38,7 +38,10 @@
           "args": "after-used",
           "argsIgnorePattern": "^_"
         }
-      ]
+      ],
+      "new-cap": "off",
+      "no-use-extend-native/no-use-extend-native": "off",
+      "unicorn/no-array-reduce": "off"
     },
     "ignore": [
       "scripts"
@@ -57,6 +60,8 @@
     "@fastify/sensible": "^5.0.0",
     "@fastify/type-provider-typebox": "^4.0.0",
     "@sinclair/typebox": "^0.32.20",
+    "ajv": "^8.13.0",
+    "ajv-formats": "^3.0.1",
     "bcrypt": "^5.1.1",
     "drizzle-orm": "^0.30.4",
     "fastify": "^4.26.1",
