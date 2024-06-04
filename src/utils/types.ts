@@ -35,6 +35,78 @@ declare module '@fastify/jwt' {
 	}
 }
 
+export interface MessageType {
+	type: number;
+	body?: string;
+	registrationId?: number;
+}
+
+export interface KeyPairType<T = ArrayBuffer> {
+	pubKey: T;
+	privKey: T;
+}
+export interface PreKeyPairType<T = ArrayBuffer> {
+	keyId: number;
+	keyPair: KeyPairType<T>;
+}
+export interface SignedPreKeyPairType<T = ArrayBuffer> extends PreKeyPairType<T> {
+	signature: T;
+}
+export interface PreKeyType<T = ArrayBuffer> {
+	keyId: number;
+	publicKey: T;
+}
+export interface SignedPublicPreKeyType<T = ArrayBuffer> extends PreKeyType<T> {
+	signature: T;
+}
+
+export interface ClientToServerEvents {
+	'message:send': (data: {
+		to: string;
+		message: MessageType;
+		timestamp: number;
+	}) => void | Promise<void>;
+	'message:ack': (data: {
+		lastReceivedMessageId: number;
+	}) => void | Promise<void>;
+	'keyBundle:save': (data: {
+		registrationId: number;
+		identityPubKey: ArrayBuffer;
+		signedPreKey: SignedPublicPreKeyType;
+		oneTimePreKeys: PreKeyType[];
+	}) => void | Promise<void>;
+}
+
+export interface ServerToClientEvents {
+	'messages:stored': (
+		data: Record<
+		string,
+		Array<{
+			from_user_user_id: number;
+			from_user_username: string;
+			message: {
+				id: number;
+				from_user_id: number;
+				to_user_id: number;
+				message: unknown;
+				timestamp: number;
+			};
+		}>
+		>
+	) => void | Promise<void>;
+
+	'message:receive': (data: {
+		id: number;
+		message: MessageType;
+		from_user_id: number;
+		from_user_username: string;
+		to_user_id: number;
+		timestamp: number;
+	}) => void | Promise<void>;
+
+	hello: (data: {hello: 'world'}) => void | Promise<void>;
+}
+
 declare module 'fastify' {
 	interface FastifyRequest {
 		fastify: FastifyInstance;
@@ -46,7 +118,7 @@ declare module 'fastify' {
 			reply: FastifyReply,
 			done: HookHandlerDoneFunction
 		) => void;
-		io: Server<any, any, any, {user: Omit<User, 'password'>}>;
+		io: Server<ClientToServerEvents, any, any, {user: Omit<User, 'password'>}>;
 
 	}
 }

@@ -21,8 +21,6 @@ import {validateMessageReceivedRequest, validateSendMessageRequest} from './dtos
 const options: AppOptions = {};
 process.env.DEBUG = 'engine,socket.io*';
 
-const savedKeyBundles: Record<string, any> = {};
-
 const app: FastifyPluginAsync<AppOptions> = async (
 	fastify,
 	options_,
@@ -91,23 +89,21 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
 			console.log('connected');
 			socket.emit('hello', {hello: 'world'});
-			socket.on('keyBundle:save', async (data: any) => {
-				console.log('saveKeyBundle', data);
-				// savedKeyBundles[socket.username!] = socket.keyBundle;
+			socket.on('keyBundle:save', async data => {
 				const keyBundle = {
 					user_id: socket.data.user.id,
-					identity_pub_key: data.keyBundle.identityPubKey as ArrayBuffer,
-					signed_pre_key_id: data.keyBundle.signedPreKey.keyId as number,
-					signed_pre_key_signature: data.keyBundle.signedPreKey.signature as ArrayBuffer,
-					signed_pre_key_pub_key: data.keyBundle.signedPreKey.publicKey as ArrayBuffer,
-					registration_id: data.keyBundle.registrationId as number,
+					identity_pub_key: data.identityPubKey,
+					signed_pre_key_id: data.signedPreKey.keyId,
+					signed_pre_key_signature: data.signedPreKey.signature,
+					signed_pre_key_pub_key: data.signedPreKey.publicKey,
+					registration_id: data.registrationId,
 				};
 				const saveBundleResult = await fastify.drizzle.transaction(async tx => {
 					const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
 					const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
 						key_bundle_id: newKeyBundle.id,
-						key_id: data.keyBundle.oneTimePreKeys[0].keyId as number,
-						pub_key: data.keyBundle.oneTimePreKeys[0].publicKey as ArrayBuffer,
+						key_id: data.oneTimePreKeys[0].keyId,
+						pub_key: data.oneTimePreKeys[0].publicKey,
 					}).returning();
 					return {
 						keyBundle: newKeyBundle,
@@ -116,17 +112,17 @@ const app: FastifyPluginAsync<AppOptions> = async (
 				});
 				console.log(saveBundleResult, 'transaction result');
 			});
-			socket.on('message:send', async (data: any, callback: (data: any) => void) => {
+			socket.on('message:send', async data => {
 				const isMessageValid = validateSendMessageRequest(data);
 				if (!isMessageValid) {
-					callback({error: 'Invalid message'});
+					// callback({error: 'Invalid message'});
 					return;
 				}
 
 				const [recipient] = await findUserByUsername(fastify.drizzle, data.to);
 				if (!recipient) {
 					console.log('recipient not found');
-					callback({error: 'Recipient not found'});
+					// callback({error: 'Recipient not found'});
 					return;
 				}
 
