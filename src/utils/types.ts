@@ -65,16 +65,16 @@ export interface ClientToServerEvents {
 		to: string;
 		message: MessageType;
 		timestamp: number;
-	}) => void | Promise<void>;
+	}, callback: () => void | Promise<void>) => void | Promise<void>;
 	'message:ack': (data: {
 		lastReceivedMessageId: number;
-	}) => void | Promise<void>;
+	}, callback: () => void | Promise<void>) => void | Promise<void>;
 	'keyBundle:save': (data: {
 		registrationId: number;
 		identityPubKey: ArrayBuffer;
 		signedPreKey: SignedPublicPreKeyType;
 		oneTimePreKeys: PreKeyType[];
-	}) => void | Promise<void>;
+	}, callback: () => void | Promise<void>) => void | Promise<void>;
 }
 
 export interface ServerToClientEvents {

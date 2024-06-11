@@ -71,51 +71,46 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
 	fastify.decorate('verifyJwtCookie', verifyJwtCookie);
 	fastify.ready().then(() => {
-		console.log('ready');
 		fastify.io.on('connection', async socket => {
 			// get messages for the user
 			// emit stored messages
 
-			console.log(socket.request.session, 'session data');
 			// socket.user = socket.handshake.session;
 			socket.data.user = socket.request.session!;
-			try {
-				const savedMessagesForUser = groupStoredMessagesBySender(await getStoredMessagesByUser(fastify.drizzle, socket.data.user.id));
-				console.log('🚀 ~ fastify.ready ~ savedMessagesForUser:', savedMessagesForUser);
-				socket.emit('messages:stored', savedMessagesForUser);
-			} catch (error) {
-				console.error(error);
-			}
 
-			console.log('connected');
-			socket.emit('hello', {hello: 'world'});
-			socket.on('keyBundle:save', async data => {
-				const keyBundle = {
-					user_id: socket.data.user.id,
-					identity_pub_key: data.identityPubKey,
-					signed_pre_key_id: data.signedPreKey.keyId,
-					signed_pre_key_signature: data.signedPreKey.signature,
-					signed_pre_key_pub_key: data.signedPreKey.publicKey,
-					registration_id: data.registrationId,
-				};
-				const saveBundleResult = await fastify.drizzle.transaction(async tx => {
-					const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
-					const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
-						key_bundle_id: newKeyBundle.id,
-						key_id: data.oneTimePreKeys[0].keyId,
-						pub_key: data.oneTimePreKeys[0].publicKey,
-					}).returning();
-					return {
-						keyBundle: newKeyBundle,
-						oneTimeKey: newOneTimeKey,
+			socket.on('keyBundle:save', async (data, callback) => {
+				try {
+					const keyBundle = {
+						user_id: socket.data.user.id,
+						identity_pub_key: data.identityPubKey,
+						signed_pre_key_id: data.signedPreKey.keyId,
+						signed_pre_key_signature: data.signedPreKey.signature,
+						signed_pre_key_pub_key: data.signedPreKey.publicKey,
+						registration_id: data.registrationId,
 					};
-				});
-				console.log(saveBundleResult, 'transaction result');
+					const saveBundleResult = await fastify.drizzle.transaction(async tx => {
+						const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
+						const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
+							key_bundle_id: newKeyBundle.id,
+							key_id: data.oneTimePreKeys[0].keyId,
+							pub_key: data.oneTimePreKeys[0].publicKey,
+						}).returning();
+						return {
+							keyBundle: newKeyBundle,
+							oneTimeKey: newOneTimeKey,
+						};
+					});
+					await callback();
+				} catch (error) {
+					console.error('Error while saving key bundle', error);
+				}
 			});
-			socket.on('message:send', async data => {
+			socket.on('message:send', async (data, callback) => {
 				const isMessageValid = validateSendMessageRequest(data);
 				if (!isMessageValid) {
 					// callback({error: 'Invalid message'});
+					await callback();
+
 					return;
 				}
 
@@ -123,6 +118,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 				if (!recipient) {
 					console.log('recipient not found');
 					// callback({error: 'Recipient not found'});
+					await callback();
+
 					return;
 				}
 
@@ -137,13 +134,14 @@ const app: FastifyPluginAsync<AppOptions> = async (
 				const recipientSocketId = sockets.find(socket => socket.data.user.username === data.to);
 				if (recipientSocketId) {
 					recipientSocketId.emit('message:receive', {from_user_username: socket.data.user.username, ...savedMessage});
+					await callback();
+
 					return;
 				}
 
-				console.log(recipient, 'recipiasync ent');
+				await callback();
 			});
-			socket.on('message:ack', async (data: any) => {
-				console.log('message:ack', data);
+			socket.on('message:ack', async (data, callback) => {
 				const isEventValid = validateMessageReceivedRequest(data);
 				if (!isEventValid) {
 					return;
@@ -151,7 +149,14 @@ const app: FastifyPluginAsync<AppOptions> = async (
 
 				await deleteReceivedMessages(fastify.drizzle, socket.data.user.id, data.lastReceivedMessageId);
 				// delete messages from db where id < data.id and to_user_id = socket.user.id
+				await callback();
 			});
+			try {
+				const savedMessagesForUser = groupStoredMessagesBySender(await getStoredMessagesByUser(fastify.drizzle, socket.data.user.id));
+				socket.emit('messages:stored', savedMessagesForUser);
+			} catch (error) {
+				console.error(error);
+			}
 		},
 		);
 	}, () => {
@@ -160,12 +165,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	await fastify.register(fastifyAuth, {defaultRelation: 'and'});
 	await fastify.register(AutoLoad, {
 		dir: join(__dirname, 'plugins'),
-		options: {
-			dirNameRoutePrefix(folderParent: string, folderName: string) {
-				console.log({folderParent, folderName});
-				return false;
-			},
-		},
+		options: options_,
 	});
 
 	await fastify.register(AutoLoad, {
