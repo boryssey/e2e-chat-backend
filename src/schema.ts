@@ -33,6 +33,8 @@ export const keyBundleSchema = pgTable('key_bundles', {
 	registration_id: integer('registration_id').notNull(),
 });
 
+export type KeyBundle = typeof keyBundleSchema.$inferSelect;
+
 export const oneTimeKeysSchema = pgTable('one_time_keys', {
 	id: serial('id').unique(),
 	key_bundle_id: integer('key_bundle_id').references(() => keyBundleSchema.id).notNull(),

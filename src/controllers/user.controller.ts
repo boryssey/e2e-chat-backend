@@ -10,11 +10,6 @@ export const getUserKeyBundleController = async (request: FastifyRequest & Fasti
 		}
 
 		const keyBundle = await getKeyBundleByUsername(request.fastify.drizzle, username);
-		// if (keyBundle) {
-		// 	const test = keyBundle.map(key => ({
-		// 		...key,
-		// 	}));
-		// }
 
 		return await reply.send(keyBundle);
 	} catch (error) {

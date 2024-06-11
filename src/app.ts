@@ -79,6 +79,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 			socket.data.user = socket.request.session!;
 
 			socket.on('keyBundle:save', async (data, callback) => {
+				// TODO: only one key bundle at a time
 				try {
 					const keyBundle = {
 						user_id: socket.data.user.id,
@@ -88,7 +89,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 						signed_pre_key_pub_key: data.signedPreKey.publicKey,
 						registration_id: data.registrationId,
 					};
-					const saveBundleResult = await fastify.drizzle.transaction(async tx => {
+					await fastify.drizzle.transaction(async tx => {
 						const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
 						const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
 							key_bundle_id: newKeyBundle.id,

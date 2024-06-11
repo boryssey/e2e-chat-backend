@@ -16,13 +16,6 @@ export const createUser = async (drizzle: DrizzleType, newuser: {username: strin
 
 export const getKeyBundleByUsername = async (drizzle: DrizzleType, username: string) => {
 	const [user] = await drizzle.select().from(usersSchema).where(eq(usersSchema.username, username));
-	// console.log('🚀 ~ getKeyBundleByUsername ~ user:', user);
-	const keyBundle = await drizzle.select().from(keyBundleSchema).where(eq(keyBundleSchema.user_id, user.id)).leftJoin(oneTimeKeysSchema, eq(oneTimeKeysSchema.key_bundle_id, keyBundleSchema.id));
-	// const keyBundle = await drizzle.query.keyBundleSchema.findMany({
-	// 	where: eq(keyBundleSchema.user_id, user.id),
-	// 	with: {
-	// 		oneTimeKeysSchema: true,
-	// 	},
-	// });
+	const [keyBundle] = await drizzle.select().from(keyBundleSchema).where(eq(keyBundleSchema.user_id, user.id)).leftJoin(oneTimeKeysSchema, eq(oneTimeKeysSchema.key_bundle_id, keyBundleSchema.id));
 	return keyBundle;
 };
