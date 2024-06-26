@@ -22,7 +22,7 @@ const options: AppOptions = {};
 process.env.DEBUG = 'engine,socket.io*';
 
 const corsOptions = process.env.NODE_ENV === 'production' ? {
-	origin: ['https://chate2e.com'],
+	origin: ['https://chate2e.com', 'https://www.chate2e.com'],
 	methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
 	credentials: true,
 	allowedHeaders: ['Content-Type', 'Authorization'],
