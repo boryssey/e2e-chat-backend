@@ -21,29 +21,30 @@ import {validateMessageReceivedRequest, validateSendMessageRequest} from './dtos
 const options: AppOptions = {};
 process.env.DEBUG = 'engine,socket.io*';
 
+const corsOptions = process.env.NODE_ENV === 'production' ? {
+	origin: ['https://chate2e.com'],
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
+	credentials: true,
+	allowedHeaders: ['Content-Type', 'Authorization'],
+} : {
+	origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
+	methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
+	credentials: true,
+	allowedHeaders: ['Content-Type', 'Authorization'],
+};
+
 const app: FastifyPluginAsync<AppOptions> = async (
 	fastify,
 	options_,
 ): Promise<void> => {
-	await fastify.register(cors, {
-		origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
-		methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
-		credentials: true,
-		allowedHeaders: ['Content-Type', 'Authorization'],
-	});
+	await fastify.register(cors, corsOptions);
 	await fastify.register(fastifyCookie);
 	await fastify.register(fastifyJWT, {
 		secret: process.env.JWT_SECRET!,
 	});
 
 	await fastify.register(fastifyIO, {
-		cors: {
-
-			origin: ['http://localhost:3001', 'http://127.0.0.1:3001'],
-			methods: ['GET', 'POST', 'PUT', 'DELETE', 'UPGRADE'],
-			credentials: true,
-			allowedHeaders: ['Content-Type', 'Authorization'],
-		},
+		cors: corsOptions,
 		allowRequest(request, callback) {
 			if (!request.headers.cookie) {
 				callback(null, false);

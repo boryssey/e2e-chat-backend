@@ -6,7 +6,13 @@ import {createUser, findUserById, findUserByUsername} from '../services/user.ser
 import {MONTH} from '../utils/constants';
 import {type FastifyReplyTypebox, type FastifyRequestTypebox} from '../utils/types';
 
-const cookieOptions: CookieSerializeOptions = {
+const cookieOptions: CookieSerializeOptions = process.env.NODE_ENV === 'production' ? {
+	path: '/',
+	domain: process.env.COOKIE_DOMAIN,
+	secure: true,
+	sameSite: 'none',
+	maxAge: MONTH,
+} : {
 	path: '/',
 	domain: 'localhost',
 	secure: false,
