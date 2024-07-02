@@ -10,7 +10,7 @@ const cookieOptions: CookieSerializeOptions = process.env.NODE_ENV === 'producti
 	path: '/',
 	domain: process.env.COOKIE_DOMAIN,
 	secure: true,
-	sameSite: 'none',
+	sameSite: 'strict',
 	maxAge: MONTH,
 } : {
 	path: '/',

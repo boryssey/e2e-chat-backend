@@ -1,12 +1,12 @@
 import {type FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
-import {userAuthRequestDTO} from '../dtos/auth.dto';
+import {loginRequestDTO, userAuthRequestDTO} from '../dtos/auth.dto';
 import {
 	loginController, logoutController, meController, registerController,
 } from '../controllers/auth.controller';
 
 export const loginOptions = {
 	schema: {
-		body: userAuthRequestDTO,
+		body: loginRequestDTO,
 	},
 };
 

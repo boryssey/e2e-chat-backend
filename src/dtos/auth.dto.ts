@@ -13,4 +13,11 @@ export const userAuthRequestDTO = Type.Object({
 	}),
 });
 
+export const loginRequestDTO = Type.Object({
+	username: Type.String(),
+	password: Type.String(),
+});
+
 export type userAuthRequestType = Static<typeof userAuthRequestDTO>;
+
+export type loginRequestType = Static<typeof loginRequestDTO>;
