@@ -17,7 +17,6 @@ export const usersSchema = pgTable('users', {
 	username: text('username').notNull(),
 	password: text('password').notNull(),
 	created_at: timestamp('created_at').defaultNow(),
-	deleted_at: timestamp('deleted_at'),
 });
 
 export type User = typeof usersSchema.$inferSelect;
@@ -38,7 +37,7 @@ export type KeyBundle = typeof keyBundleSchema.$inferSelect;
 export const oneTimeKeysSchema = pgTable('one_time_keys', {
 	id: serial('id').unique(),
 	key_bundle_id: integer('key_bundle_id').references(() => keyBundleSchema.id).notNull(),
-	key_id: integer('key_id').notNull(),
+	key_id: integer('key_id').notNull().unique(),
 	pub_key: bytea('pub_key').notNull(),
 });
 

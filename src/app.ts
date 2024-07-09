@@ -1,3 +1,4 @@
+/* eslint-disable max-nested-callbacks */
 import {join} from 'node:path';
 import AutoLoad from '@fastify/autoload';
 import {
@@ -11,11 +12,11 @@ import fastifyIO from 'fastify-socket.io';
 import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
 import {keyBundleSchema, oneTimeKeysSchema, type User} from './schema';
-import {findUserByUsername} from './services/user.service';
+import {deleteKeyBundleWithKeys, findUserByUsername, getKeyBundleByUserId} from './services/user.service';
 import {
 	deleteReceivedMessages, getStoredMessagesByUser, groupStoredMessagesBySender, storeMessage,
 } from './services/message.service';
-import {validateMessageReceivedRequest, validateSendMessageRequest} from './dtos/socketEvents.dto';
+import {validateMessageReceivedRequest, validateSendMessageRequest, validateVerifyKeyBundleRequest} from './dtos/socketEvents.dto';
 
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {};
@@ -80,8 +81,12 @@ const app: FastifyPluginAsync<AppOptions> = async (
 			socket.data.user = socket.request.session!;
 
 			socket.on('keyBundle:save', async (data, callback) => {
-				// TODO: only one key bundle at a time
 				try {
+					const existingKeyBundle = await getKeyBundleByUserId(fastify.drizzle, socket.data.user.id);
+					if (existingKeyBundle) {
+						await deleteKeyBundleWithKeys(fastify.drizzle, existingKeyBundle.id);
+					}
+
 					const keyBundle = {
 						user_id: socket.data.user.id,
 						identity_pub_key: data.identityPubKey,
@@ -90,18 +95,25 @@ const app: FastifyPluginAsync<AppOptions> = async (
 						signed_pre_key_pub_key: data.signedPreKey.publicKey,
 						registration_id: data.registrationId,
 					};
-					await fastify.drizzle.transaction(async tx => {
-						const [newKeyBundle] = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
-						const newOneTimeKey = await tx.insert(oneTimeKeysSchema).values({
-							key_bundle_id: newKeyBundle.id,
-							key_id: data.oneTimePreKeys[0].keyId,
-							pub_key: data.oneTimePreKeys[0].publicKey,
-						}).returning();
+					const newData = await fastify.drizzle.transaction(async tx => {
+						const newKeyBundle = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
+						if (!newKeyBundle[0]) {
+							throw new Error('Error while saving key bundle');
+						}
+
+						const oneTimeKeys = data.oneTimePreKeys.map(oneTimeKey => ({
+							key_bundle_id: newKeyBundle[0].id,
+							key_id: oneTimeKey.keyId,
+							pub_key: oneTimeKey.publicKey,
+						}));
+
+						const newOneTimeKeys = await tx.insert(oneTimeKeysSchema).values(oneTimeKeys).returning();
 						return {
 							keyBundle: newKeyBundle,
-							oneTimeKey: newOneTimeKey,
+							oneTimeKeys: newOneTimeKeys,
 						};
 					});
+
 					await callback();
 				} catch (error) {
 					console.error('Error while saving key bundle', error);

@@ -50,6 +50,20 @@
       "when": 1715946736426,
       "tag": "0006_useful_norrin_radd",
       "breakpoints": true
+    },
+    {
+      "idx": 7,
+      "version": "5",
+      "when": 1720556888615,
+      "tag": "0007_messy_hellfire_club",
+      "breakpoints": true
+    },
+    {
+      "idx": 8,
+      "version": "5",
+      "when": 1720558426023,
+      "tag": "0008_far_lizard",
+      "breakpoints": true
     }
   ]
 }
