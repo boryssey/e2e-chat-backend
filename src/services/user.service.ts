@@ -19,3 +19,7 @@ export const getKeyBundleByUsername = async (drizzle: DrizzleType, username: str
 	const [keyBundle] = await drizzle.select().from(keyBundleSchema).where(eq(keyBundleSchema.user_id, user.id)).leftJoin(oneTimeKeysSchema, eq(oneTimeKeysSchema.key_bundle_id, keyBundleSchema.id));
 	return keyBundle;
 };
+export const getKeyBundleByUserId = async (drizzle: DrizzleType, userId: number) => {
+	const keyBundle = await drizzle.select().from(keyBundleSchema).where(eq(keyBundleSchema.user_id, userId));
+	return keyBundle[0];
+};

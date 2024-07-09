@@ -1,3 +1,4 @@
+/* eslint-disable @typescript-eslint/ban-types */
 export function getEnv(): 'test' | 'development' | 'production' {
 	switch (process.env.NODE_ENV) {
 		case 'test':
@@ -19,3 +20,5 @@ export const groupBy = <T, K extends keyof any>(list: T[], getKey: (item: T) => 
 		previous[group].push(currentItem);
 		return previous;
 	}, {} as Record<K, T[]>); // eslint-disable-line @typescript-eslint/prefer-reduce-type-parameter
+
+export const bufferToArrayBuffer = (buffer: Buffer): ArrayBuffer => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);

@@ -14,3 +14,10 @@ export const messageReceivedEventDTO = Type.Object({
 });
 
 export const validateMessageReceivedRequest = ajv.compile<Static<typeof messageReceivedEventDTO>>(messageReceivedEventDTO);
+
+export const verifyKeyBundleEventDTO = Type.Object({
+	identityPubKey: Type.Any(),
+	username: Type.String(),
+});
+
+export const validateVerifyKeyBundleRequest = ajv.compile<Static<typeof verifyKeyBundleEventDTO>>(verifyKeyBundleEventDTO);

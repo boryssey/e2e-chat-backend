@@ -75,6 +75,13 @@ export interface ClientToServerEvents {
 		signedPreKey: SignedPublicPreKeyType;
 		oneTimePreKeys: PreKeyType[];
 	}, callback: () => void | Promise<void>) => void | Promise<void>;
+	'keyBundle:verify': (
+		data: {
+			identityPubKey: ArrayBuffer;
+			username: string;
+		},
+		callback: (data: {verified: boolean}) => void | Promise<void>
+	) => void | Promise<void>;
 }
 
 export interface ServerToClientEvents {

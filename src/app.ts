@@ -153,6 +153,30 @@ const app: FastifyPluginAsync<AppOptions> = async (
 				// delete messages from db where id < data.id and to_user_id = socket.user.id
 				await callback();
 			});
+
+			socket.on('keyBundle:verify', async (data, callback) => {
+				const isRequestValid = validateVerifyKeyBundleRequest(data);
+				if (!isRequestValid) {
+					await callback({verified: false});
+					return;
+				}
+
+				const [user] = await findUserByUsername(fastify.drizzle, data.username);
+				if (!user) {
+					await callback({verified: false});
+					return;
+				}
+
+				const keyBundle = await getKeyBundleByUserId(fastify.drizzle, user.id);
+				console.log(data.identityPubKey, 'identityPubKey', typeof data.identityPubKey, data.identityPubKey instanceof Buffer);
+
+				// eslint-disable-next-line @typescript-eslint/ban-types
+				const isVerified = (data.identityPubKey as Buffer).equals(keyBundle.identity_pub_key as Buffer);
+				console.log({toCheck: data.identityPubKey, saved: keyBundle.identity_pub_key});
+				console.log('🚀 ~ socket.on ~ isVerified:', isVerified);
+
+				await callback({verified: isVerified});
+			});
 			try {
 				const savedMessagesForUser = groupStoredMessagesBySender(await getStoredMessagesByUser(fastify.drizzle, socket.data.user.id));
 				socket.emit('messages:stored', savedMessagesForUser);
