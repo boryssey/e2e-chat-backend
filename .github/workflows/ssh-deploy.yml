@@ -44,8 +44,3 @@ jobs:
           REMOTE_USER: ${{ secrets.REMOTE_USER }}
           TARGET: ${{ secrets.REMOTE_TARGET }}
           EXCLUDE: "/dist/, /node_modules/"
-          SCRIPT_BEFORE: |
-              whoami
-              ls -al
-          SCRIPT_AFTER: |
-              ls e2e-chat-backend
