@@ -1,0 +1,37 @@
+version: "3"
+services:
+  chate2e-api:
+    container_name: chate2e-api
+    build: .
+    image: chate2e-api:latest
+    env_file: .env
+    ports: 
+      - "3000:3000"
+    networks: 
+      - chate2e
+    depends_on:
+      - chate2e-db
+  
+  chate2e-db:
+    container_name: chate2e-db
+    restart: unless-stopped
+    env_file: .env
+    image: postgres:16.4-alpine
+    environment:
+      POSTGRES_USER: ${DATABASE_USERNAME}
+      POSTGRES_PASSWORD: ${DATABASE_PASSWORD}
+      POSTGRES_DB: ${DATABASE_NAME}
+    volumes:
+      - chate2e-data:/var/lib/postgresql/data/
+    ports:
+      - "5433:5432"
+    networks:
+      - chate2e
+
+volumes:
+  chate2e-data:
+
+networks:
+  chate2e:
+    name: chate2e
+    driver: bridge
