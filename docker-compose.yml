@@ -2,8 +2,8 @@ version: "3"
 services:
   chate2e-api:
     container_name: chate2e-api
-    build: .
-    image: chate2e-api:latest
+    #build: .
+    image: ghcr.io/boryssey/e2e-chat-backend:main
     env_file: .env
     ports: 
       - "3000:3000"
@@ -27,6 +27,17 @@ services:
       - "5433:5432"
     networks:
       - chate2e
+
+  watchtower:
+    container_name: chate2e-watchtower
+    image: containrrr/watchtower
+    environment:
+      - WATCHTOWER_CLEANUP=true
+    volumes:
+      - /var/run/docker.sock:/var/run/docker.sock
+      # - ~/.docker/config.json:/config.json
+
+    command: --interval 30 chate2e-api
 
 volumes:
   chate2e-data:

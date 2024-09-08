@@ -1,3 +1,4 @@
+
 import {type AutoloadPluginOptions} from '@fastify/autoload';
 import {type JWT} from '@fastify/jwt';
 import {type TypeBoxTypeProvider} from '@fastify/type-provider-typebox';
@@ -7,7 +8,7 @@ import {
 	type FastifyReply,
 	type FastifyRequest,
 } from 'fastify';
-import {type Server} from 'socket.io';
+import {type Socket, type Server} from 'socket.io';
 import {type User} from '../schema';
 
 export type FastifyRequestTypebox<TSchema extends FastifySchema> = FastifyRequest<
@@ -60,29 +61,42 @@ export interface SignedPublicPreKeyType<T = ArrayBuffer> extends PreKeyType<T> {
 	signature: T;
 }
 
-export interface ClientToServerEvents {
+type Result<Error, Value> =
+ | {
+ 	success: false;
+ 	error: Error;
+ }
+ | {
+ 	success: true;
+ 	value?: Value;
+ };
+
+export type CallbackWithError<Value> = (data: Result<Error, Value>) => void;
+
+export type ClientToServerEvents = {
 	'message:send': (data: {
 		to: string;
 		message: MessageType;
 		timestamp: number;
-	}, callback: () => void | Promise<void>) => void | Promise<void>;
+	// }, callback: () => void | Promise<void>) => void | Promise<void>;
+	}, callback: CallbackWithError<Record<string, any>>) => void;
 	'message:ack': (data: {
 		lastReceivedMessageId: number;
-	}, callback: () => void | Promise<void>) => void | Promise<void>;
+	}, callback: CallbackWithError<Record<string, any>>) => void;
 	'keyBundle:save': (data: {
 		registrationId: number;
 		identityPubKey: ArrayBuffer;
 		signedPreKey: SignedPublicPreKeyType;
 		oneTimePreKeys: PreKeyType[];
-	}, callback: () => void | Promise<void>) => void | Promise<void>;
+	}, callback: CallbackWithError<Record<string, any>>) => void;
 	'keyBundle:verify': (
 		data: {
 			identityPubKey: ArrayBuffer;
 			username: string;
 		},
-		callback: (data: {verified: boolean}) => void | Promise<void>
-	) => void | Promise<void>;
-}
+		callback: CallbackWithError<{verified?: boolean}>
+	) => void;
+};
 
 export interface ServerToClientEvents {
 	'messages:stored': (
@@ -100,7 +114,7 @@ export interface ServerToClientEvents {
 			};
 		}>
 		>
-	) => void | Promise<void>;
+	) => void;
 
 	'message:receive': (data: {
 		id: number;
@@ -111,7 +125,7 @@ export interface ServerToClientEvents {
 		timestamp: number;
 	}) => void | Promise<void>;
 
-	hello: (data: {hello: 'world'}) => void | Promise<void>;
+	hello: (data: {hello: 'world'}) => void ;
 }
 
 declare module 'fastify' {
@@ -126,9 +140,10 @@ declare module 'fastify' {
 			done: HookHandlerDoneFunction
 		) => void;
 		io: Server<ClientToServerEvents, any, any, {user: Omit<User, 'password'>}>;
-
 	}
 }
+
+export type FastifySocket = Socket<ClientToServerEvents, any, any, {user: Omit<User, 'password'>}>;
 
 declare module 'http' {
 	interface IncomingMessage {
