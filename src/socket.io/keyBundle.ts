@@ -4,10 +4,9 @@ import {validateVerifyKeyBundleRequest} from '../dtos/socketEvents.dto';
 import {type FastifySocket} from '../utils/types';
 import {getStoredMessagesByUser, groupStoredMessagesBySender} from '../services/message.service';
 import {type DrizzleType} from '../plugins/drizzleOrm';
-// eslint-disable-next-line import/no-cycle
 import {eventHandler, type EventHandlerRegisterer} from '.';
 
-const registerKeyBundleHandlers: EventHandlerRegisterer = (io, socket, drizzle) => {
+const registerKeyBundleHandlers: EventHandlerRegisterer = async (io, socket, drizzle) => {
 	const handleSaveKeyBundle = eventHandler<'keyBundle:save'>(async data => {
 		const existingKeyBundle = await getKeyBundleByUserId(drizzle, socket.data.user.id);
 		if (existingKeyBundle) {
@@ -23,22 +22,26 @@ const registerKeyBundleHandlers: EventHandlerRegisterer = (io, socket, drizzle) 
 			registration_id: data.registrationId,
 		};
 		await drizzle.transaction(async tx => {
-			const newKeyBundle = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
-			if (!newKeyBundle[0]) {
-				throw new Error('Error while saving key bundle');
+			try {
+				const newKeyBundle = await tx.insert(keyBundleSchema).values({...keyBundle}).returning();
+				if (!newKeyBundle[0]) {
+					throw new Error('Error while saving key bundle');
+				}
+
+				const oneTimeKeys = data.oneTimePreKeys.map(oneTimeKey => ({
+					key_bundle_id: newKeyBundle[0].id,
+					key_id: oneTimeKey.keyId,
+					pub_key: oneTimeKey.publicKey,
+				}));
+				const newOneTimeKeys = await tx.insert(oneTimeKeysSchema).values(oneTimeKeys).returning();
+				return {
+					keyBundle: newKeyBundle,
+					oneTimeKeys: newOneTimeKeys,
+				};
+			} catch (error) {
+				tx.rollback();
+				throw error;
 			}
-
-			const oneTimeKeys = data.oneTimePreKeys.map(oneTimeKey => ({
-				key_bundle_id: newKeyBundle[0].id,
-				key_id: oneTimeKey.keyId,
-				pub_key: oneTimeKey.publicKey,
-			}));
-
-			const newOneTimeKeys = await tx.insert(oneTimeKeysSchema).values(oneTimeKeys).returning();
-			return {
-				keyBundle: newKeyBundle,
-				oneTimeKeys: newOneTimeKeys,
-			};
 		});
 		return {
 			success: true,
@@ -73,8 +76,8 @@ const registerKeyBundleHandlers: EventHandlerRegisterer = (io, socket, drizzle) 
 		};
 	});
 
-	io.on('keyBundle:save', handleSaveKeyBundle);
-	io.on('keyBundle:verify', handleVerifyKeyBundle);
+	socket.on('keyBundle:save', handleSaveKeyBundle);
+	socket.on('keyBundle:verify', handleVerifyKeyBundle);
 };
 
 export const emitSavedMessagesToUser = async (socket: FastifySocket, drizzle: DrizzleType) => {

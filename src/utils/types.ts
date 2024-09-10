@@ -1,3 +1,4 @@
+/* eslint-disable unicorn/prevent-abbreviations */
 
 import {type AutoloadPluginOptions} from '@fastify/autoload';
 import {type JWT} from '@fastify/jwt';
@@ -71,6 +72,23 @@ type Result<Error, Value> =
  	value?: Value;
  };
 
+export type EventsMap = Record<string, any>;
+export declare type EventNames<Map extends EventsMap> = keyof Map & (string | symbol);
+export declare type ReservedOrUserEventNames<ReservedEventsMap extends EventsMap, UserEvents extends EventsMap> = EventNames<ReservedEventsMap> | EventNames<UserEvents>;
+declare type FallbackToUntypedListener<T> = [T] extends [never] ? never : T;
+export declare type ReservedOrUserListener<ReservedEvents extends EventsMap, UserEvents extends EventsMap, Event_ extends ReservedOrUserEventNames<ReservedEvents, UserEvents>> = FallbackToUntypedListener<Event_ extends EventNames<ReservedEvents> ? ReservedEvents[Event_] : Event_ extends EventNames<UserEvents> ? UserEvents[Event_] : never>;
+declare type IsAny<T> = 0 extends 1 & T ? true : false;
+declare type IfAny<T, TypeIfAny = true, TypeIfNotAny = false> = IsAny<T> extends true ? TypeIfAny : TypeIfNotAny;
+export declare type Last<ValueType extends readonly unknown[]> = ValueType extends readonly [infer ElementType] ? ElementType : ValueType extends readonly [infer _, ...infer Tail] ? Last<Tail> : ValueType extends ReadonlyArray<infer ElementType> ? ElementType : never;
+export declare type FirstNonErrorTuple<T extends unknown[]> = T[0] extends Error ? T[1] : T[0];
+// export declare type FirstNonErrorArg<T> = T extends (...arguments_: infer Parameters_) => any ? FirstNonErrorTuple<Parameters_> : any;
+export declare type AllButLast<T extends any[]> = T extends [...infer H, infer L] ? H : any[];
+
+export declare type FirstNonErrorArg<T> = T extends (...arguments_: infer Parameters_) => any ? FirstNonErrorTuple<Parameters_> : any;
+export declare type EventNamesWithAck<Map extends EventsMap, K extends EventNames<Map> = EventNames<Map>> = IfAny<Last<Parameters<Map[K]>> | Map[K], K, K extends (Last<Parameters<Map[K]>> extends (...arguments_: any[]) => any ? FirstNonErrorArg<Last<Parameters<Map[K]>>> extends void ? never : K : never) ? K : never>;
+
+export declare type EventListener<Event_ extends ReservedOrUserEventNames<Record<string, unknown>, ClientToServerEvents>> = ReservedOrUserListener<Record<string, unknown>, ClientToServerEvents, Event_>;
+
 export type CallbackWithError<Value> = (data: Result<Error, Value>) => void;
 
 export type ClientToServerEvents = {
@@ -78,17 +96,16 @@ export type ClientToServerEvents = {
 		to: string;
 		message: MessageType;
 		timestamp: number;
-	// }, callback: () => void | Promise<void>) => void | Promise<void>;
-	}, callback: CallbackWithError<Record<string, any>>) => void;
+	}, callback: CallbackWithError<Record<string, unknown>>) => void;
 	'message:ack': (data: {
 		lastReceivedMessageId: number;
-	}, callback: CallbackWithError<Record<string, any>>) => void;
+	}, callback: CallbackWithError<Record<string, unknown>>) => void;
 	'keyBundle:save': (data: {
 		registrationId: number;
 		identityPubKey: ArrayBuffer;
 		signedPreKey: SignedPublicPreKeyType;
 		oneTimePreKeys: PreKeyType[];
-	}, callback: CallbackWithError<Record<string, any>>) => void;
+	}, callback: CallbackWithError<Record<string, unknown>>) => void;
 	'keyBundle:verify': (
 		data: {
 			identityPubKey: ArrayBuffer;

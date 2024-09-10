@@ -70,7 +70,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	fastify.decorate('verifyJwtCookie', verifyJwtCookie);
 	fastify.ready().then(() => {
 		fastify.io.on('connection', async socket => {
-			await onConnection(fastify.io, socket, fastify.drizzle);
+			onConnection(fastify.io, socket, fastify.drizzle);
+			// await emitSavedMessagesToUser(socket, fastify.drizzle);
 		},
 		);
 	}, () => {

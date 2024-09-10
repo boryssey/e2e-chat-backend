@@ -1,7 +1,7 @@
 import {validateMessageReceivedRequest, validateSendMessageRequest} from '../dtos/socketEvents.dto';
 import {deleteReceivedMessages, storeMessage} from '../services/message.service';
 import {findUserByUsername} from '../services/user.service';
-import {eventHandler, type EventHandlerRegisterer} from '.';
+import {eventHandler, type EventHandlerRegisterer} from '.'; // eslint-disable-line import/no-cycle
 
 const registerMessageHandlers: EventHandlerRegisterer = (io, socket, drizzle) => {
 	const handleSendMessage = eventHandler<'message:send'>(async data => {
@@ -13,8 +13,6 @@ const registerMessageHandlers: EventHandlerRegisterer = (io, socket, drizzle) =>
 
 		const [recipient] = await findUserByUsername(drizzle, data.to);
 		if (!recipient) {
-			console.log('recipient not found');
-			// callback({error: 'Recipient not found'});
 			throw new Error('Recipient not found');
 		}
 
