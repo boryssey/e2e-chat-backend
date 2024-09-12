@@ -22,3 +22,5 @@ export const groupBy = <T, K extends keyof any>(list: T[], getKey: (item: T) => 
 	}, {} as Record<K, T[]>); // eslint-disable-line @typescript-eslint/prefer-reduce-type-parameter
 
 export const bufferToArrayBuffer = (buffer: Buffer): ArrayBuffer => buffer.buffer.slice(buffer.byteOffset, buffer.byteOffset + buffer.byteLength);
+
+export const NOOP = () => {}; // eslint-disable-line @typescript-eslint/no-empty-function

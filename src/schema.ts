@@ -22,6 +22,8 @@ export const usersSchema = pgTable('users', {
 
 export type User = typeof usersSchema.$inferSelect;
 
+export const {password: _, ...userColumnsSanitized} = getTableColumns(usersSchema);
+
 export const keyBundleSchema = pgTable('key_bundles', {
 	id: serial('id').unique().primaryKey(),
 	user_id: integer('user_id').references(() => usersSchema.id).notNull(),
@@ -49,6 +51,7 @@ export const messageSchema = pgTable('messages', {
 	message: jsonb('message').notNull(),
 	timestamp: timestamp('timestamp').notNull(),
 });
+export type Message = typeof messageSchema.$inferSelect;
 
 export const disposableChatSchema = pgTable('disposable_chats', {
 	id: uuid('id').default(sql`uuid_generate_v4()`).unique().primaryKey(),
@@ -57,6 +60,7 @@ export const disposableChatSchema = pgTable('disposable_chats', {
 	created_at: timestamp('created_at').defaultNow(),
 });
 
-export type Message = typeof messageSchema.$inferSelect;
+export type DisposableChat = typeof disposableChatSchema.$inferSelect;
 
-export const {password: _, ...userColumnsSanitized} = getTableColumns(usersSchema);
+export const disposableChatColumns = getTableColumns(disposableChatSchema);
+

@@ -1,14 +1,12 @@
 
 import {join} from 'node:path';
 import AutoLoad from '@fastify/autoload';
-import {
-	type FastifyPluginAsync,
-} from 'fastify';
 import fastifyCookie from '@fastify/cookie';
 import fastifyJWT from '@fastify/jwt';
 import fastifyAuth from '@fastify/auth';
 import cors from '@fastify/cors';
 import fastifyIO from 'fastify-socket.io';
+import {type FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
 import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
 import {type User} from './schema';
@@ -31,7 +29,7 @@ const corsOptions = process.env.NODE_ENV === 'production' ? {
 	allowedHeaders: ['Content-Type', 'Authorization'],
 };
 
-const app: FastifyPluginAsync<AppOptions> = async (
+const app: FastifyPluginAsyncTypebox<AppOptions> = async (
 	fastify,
 	options_,
 ): Promise<void> => {

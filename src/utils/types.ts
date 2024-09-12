@@ -1,15 +1,18 @@
 /* eslint-disable unicorn/prevent-abbreviations */
 
-import {type AutoloadPluginOptions} from '@fastify/autoload';
-import {type JWT} from '@fastify/jwt';
 import {type TypeBoxTypeProvider} from '@fastify/type-provider-typebox';
 import {
-	type ContextConfigDefault, type RawReplyDefaultExpression, type RawRequestDefaultExpression, type RawServerDefault, type RouteGenericInterface, type FastifyServerOptions, type HookHandlerDoneFunction,
+	type ContextConfigDefault, type RawReplyDefaultExpression, type RawRequestDefaultExpression, type RawServerDefault, type RouteGenericInterface, type HookHandlerDoneFunction,
 	type FastifySchema,
 	type FastifyReply,
 	type FastifyRequest,
+	type FastifyInstance,
+	type FastifyBaseLogger,
+	type FastifyServerOptions,
 } from 'fastify';
 import {type Socket, type Server} from 'socket.io';
+import {type JWT} from '@fastify/jwt';
+import {type AutoloadPluginOptions} from '@fastify/autoload';
 import {type User} from '../schema';
 
 export type FastifyRequestTypebox<TSchema extends FastifySchema> = FastifyRequest<
@@ -17,6 +20,14 @@ RouteGenericInterface,
 RawServerDefault,
 RawRequestDefaultExpression,
 TSchema,
+TypeBoxTypeProvider
+>;
+
+type FastifyTypebox = FastifyInstance<
+RawServerDefault,
+RawRequestDefaultExpression,
+RawReplyDefaultExpression,
+FastifyBaseLogger,
 TypeBoxTypeProvider
 >;
 
@@ -82,7 +93,7 @@ declare type IfAny<T, TypeIfAny = true, TypeIfNotAny = false> = IsAny<T> extends
 export declare type Last<ValueType extends readonly unknown[]> = ValueType extends readonly [infer ElementType] ? ElementType : ValueType extends readonly [infer _, ...infer Tail] ? Last<Tail> : ValueType extends ReadonlyArray<infer ElementType> ? ElementType : never;
 export declare type FirstNonErrorTuple<T extends unknown[]> = T[0] extends Error ? T[1] : T[0];
 // export declare type FirstNonErrorArg<T> = T extends (...arguments_: infer Parameters_) => any ? FirstNonErrorTuple<Parameters_> : any;
-export declare type AllButLast<T extends any[]> = T extends [...infer H, infer L] ? H : any[];
+export declare type AllButLast<T extends any[]> = T extends [...infer H, infer _L] ? H : any[];
 
 export declare type FirstNonErrorArg<T> = T extends (...arguments_: infer Parameters_) => any ? FirstNonErrorTuple<Parameters_> : any;
 export declare type EventNamesWithAck<Map extends EventsMap, K extends EventNames<Map> = EventNames<Map>> = IfAny<Last<Parameters<Map[K]>> | Map[K], K, K extends (Last<Parameters<Map[K]>> extends (...arguments_: any[]) => any ? FirstNonErrorArg<Last<Parameters<Map[K]>>> extends void ? never : K : never) ? K : never>;
@@ -147,7 +158,7 @@ export interface ServerToClientEvents {
 
 declare module 'fastify' {
 	interface FastifyRequest {
-		fastify: FastifyInstance;
+		fastify: FastifyTypebox;
 		jwt: JWT;
 	}
 	export interface FastifyInstance {

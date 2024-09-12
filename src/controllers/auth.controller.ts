@@ -6,7 +6,7 @@ import {createUser, findUserById, findUserByUsername} from '../services/user.ser
 import {MONTH} from '../utils/constants';
 import {type FastifyReplyTypebox, type FastifyRequestTypebox} from '../utils/types';
 
-const cookieOptions: CookieSerializeOptions = process.env.NODE_ENV === 'production' ? {
+export const cookieOptions: CookieSerializeOptions = process.env.NODE_ENV === 'production' ? {
 	path: '/',
 	domain: process.env.COOKIE_DOMAIN,
 	secure: true,
@@ -50,6 +50,10 @@ export const loginController = async (request: FastifyRequest & FastifyRequestTy
 		}
 
 		const {password: passwordHash, ...user} = existingUser;
+		if (!passwordHash) {
+			return await reply.status(401).send({message: 'Invalid credentials'});
+		}
+
 		const passwordMatch = await bcrypt.compare(password, passwordHash);
 		if (!passwordMatch) {
 			return await reply.status(401).send({message: 'Invalid credentials'});
