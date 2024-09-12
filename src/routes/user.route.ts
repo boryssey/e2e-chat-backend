@@ -9,7 +9,12 @@ export const getKeyBundleOptions = {
 };
 
 const UserRoutes: FastifyPluginAsyncTypebox = async (fastify, _options): Promise<void> => {
-	fastify.get('/:username/keyBundle:', getKeyBundleOptions, getUserKeyBundleController);
+	fastify.get('/:username/keyBundle:',
+		{
+			...getKeyBundleOptions,
+			preHandler: fastify.auth([fastify.verifyJwtCookie]),
+		},
+		getUserKeyBundleController);
 };
 
 export const autoPrefix = '/user';
