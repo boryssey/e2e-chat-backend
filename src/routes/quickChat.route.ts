@@ -29,7 +29,8 @@ export const createUserForQuickChatSchema = {
 		uuid: Type.String(),
 	}),
 	response: {
-		200: Type.Object({
+		201: Type.Object({
+			id: Type.Number(),
 			username: Type.String(),
 		}),
 		401: Type.Object({
@@ -42,7 +43,10 @@ export type CreateUserForQuickChatType = typeof createUserForQuickChatSchema;
 
 const quickChatRoutes: FastifyPluginAsyncTypebox = async (fastify, _options): Promise<void> => {
 	fastify.post('/', {schema: createChatSchema}, postQuickChatController);
-	fastify.get('/:uuid', {schema: getChatInfoSchema}, getQuickChatInfoController);
+	fastify.get('/:uuid', {
+		schema: getChatInfoSchema,
+		preHandler: fastify.auth([fastify.verifyChatJwtCookie]),
+	}, getQuickChatInfoController);
 	fastify.post('/:uuid/user', {schema: createUserForQuickChatSchema}, createUserForChatController);
 };
 

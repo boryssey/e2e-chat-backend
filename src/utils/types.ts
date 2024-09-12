@@ -41,9 +41,11 @@ TSchema,
 TypeBoxTypeProvider
 >;
 
+export type UserForChat = Omit<User, 'password'> & {chat_id: string};
+
 declare module '@fastify/jwt' {
 	interface FastifyJWT {
-		payload: {id: number}; // payload type is used for signing and verifying
+		payload: {id: number} | UserForChat; // payload type is used for signing and verifying
 		user: Omit<User, 'password'>; // user type is used for request.user
 	}
 }
@@ -160,6 +162,8 @@ declare module 'fastify' {
 	interface FastifyRequest {
 		fastify: FastifyTypebox;
 		jwt: JWT;
+		authorizedChats: Record<string, Omit<User, 'password'>>;
+
 	}
 	export interface FastifyInstance {
 		verifyJwtCookie: (
@@ -167,8 +171,20 @@ declare module 'fastify' {
 			reply: FastifyReply,
 			done: HookHandlerDoneFunction
 		) => void;
+		verifyChatJwtCookie: (
+			request: FastifyRequest,
+			reply: FastifyReply,
+			done: HookHandlerDoneFunction
+		) => void;
+
 		io: Server<ClientToServerEvents, any, any, {user: Omit<User, 'password'>}>;
 	}
+}
+
+type Truthy<T> = T extends false | '' | 0 | undefined ? never : T; // from lodash
+
+export function truthy<T>(value: T): value is Truthy<T> { // eslint-disable-line unicorn/prefer-native-coercion-functions
+	return Boolean(value);
 }
 
 export type FastifySocket = Socket<ClientToServerEvents, any, any, {user: Omit<User, 'password'>}>;

@@ -22,6 +22,10 @@ export const getQuickChatInfoController = async (request: FastifyRequestTypebox<
 		return reply.status(404).send();
 	}
 
+	if (chatInfo.user1 && chatInfo.user2 && !request.authorizedChats[uuid]) {
+		return reply.status(401).send();
+	}
+
 	return reply.status(200).send(chatInfo);
 };
 
@@ -29,6 +33,7 @@ export const createUserForChatController = async (request: FastifyRequestTypebox
 	const {drizzle} = request.fastify;
 	const {uuid: chat_id} = request.params;
 	const [chat] = await getQuickChatInfo(drizzle, chat_id);
+
 	if (!chat) {
 		return reply.status(404).send();
 	}
@@ -44,8 +49,9 @@ export const createUserForChatController = async (request: FastifyRequestTypebox
 		[chat.user1 ? 'user2' : 'user1']: newUser.id,
 	} as Record<'user1' | 'user2', number>);
 
-	const newJwt = request.jwt.sign(newUser);
+	const newJwt = request.jwt.sign({...newUser, chat_id});
 	void reply.setCookie(`${chat_id}:accessToken`, newJwt, cookieOptions);
+
 	return reply.status(201).send({
 		id: newUser.id,
 		username: newUser.username,

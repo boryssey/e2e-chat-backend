@@ -15,7 +15,7 @@
     "build": "tsc",
     "watch:ts": "tsc -w",
     "dev": "pnpm run build && concurrently -k -p \"[{name}]\" -n \"TypeScript,App\" -c \"yellow.bold,cyan.bold\" \"pnpm:watch:ts\" \"pnpm:dev:start\"",
-    "dev:start": "fastify start --ignore-watch=.ts$ -w -l info -P dist/app.js",
+    "dev:start": "fastify start --debug --ignore-watch=.ts$ -w -l info -P dist/app.js",
     "print-routes": "pnpm run build && fastify print-routes --ignore-watch=.ts$ -w -l info -P dist/app.js",
     "generate": "drizzle-kit generate",
     "migrate": "drizzle-kit migrate"

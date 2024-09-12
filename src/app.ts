@@ -8,7 +8,7 @@ import cors from '@fastify/cors';
 import fastifyIO from 'fastify-socket.io';
 import {type FastifyPluginAsyncTypebox} from '@fastify/type-provider-typebox';
 import {type AppOptions} from './utils/types';
-import {verifyJwtCookie} from './utils/decorators';
+import {verifyChatJwtCookie, verifyJwtCookie} from './utils/decorators';
 import {type User} from './schema';
 import onConnection from './socket.io';
 import {emitSavedMessagesToUser} from './socket.io/keyBundle';
@@ -66,6 +66,8 @@ const app: FastifyPluginAsyncTypebox<AppOptions> = async (
 	});
 
 	fastify.decorate('verifyJwtCookie', verifyJwtCookie);
+	fastify.decorate('verifyChatJwtCookie', verifyChatJwtCookie);
+
 	fastify.ready().then(() => {
 		fastify.io.on('connection', async socket => {
 			onConnection(fastify.io, socket, fastify.drizzle);
