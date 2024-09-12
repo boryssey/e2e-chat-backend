@@ -1,10 +1,8 @@
 {
-  "id": "31719707-cea7-4bd9-9309-00496b7642df",
-  "prevId": "9f5f5e20-2e74-4f75-a3b0-75be18f630a3",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "key_bundles": {
+    "public.key_bundles": {
       "name": "key_bundles",
       "schema": "",
       "columns": {
@@ -63,29 +61,29 @@
         "key_bundles_user_id_users_id_fk": {
           "name": "key_bundles_user_id_users_id_fk",
           "tableFrom": "key_bundles",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "key_bundles_id_unique": {
           "name": "key_bundles_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "messages": {
+    "public.messages": {
       "name": "messages",
       "schema": "",
       "columns": {
@@ -125,42 +123,42 @@
         "messages_from_user_id_users_id_fk": {
           "name": "messages_from_user_id_users_id_fk",
           "tableFrom": "messages",
-          "tableTo": "users",
           "columnsFrom": [
             "from_user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         },
         "messages_to_user_id_users_id_fk": {
           "name": "messages_to_user_id_users_id_fk",
           "tableFrom": "messages",
-          "tableTo": "users",
           "columnsFrom": [
             "to_user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "messages_id_unique": {
           "name": "messages_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "one_time_keys": {
+    "public.one_time_keys": {
       "name": "one_time_keys",
       "schema": "",
       "columns": {
@@ -194,36 +192,36 @@
         "one_time_keys_key_bundle_id_key_bundles_id_fk": {
           "name": "one_time_keys_key_bundle_id_key_bundles_id_fk",
           "tableFrom": "one_time_keys",
-          "tableTo": "key_bundles",
           "columnsFrom": [
             "key_bundle_id"
           ],
+          "tableTo": "key_bundles",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "one_time_keys_id_unique": {
           "name": "one_time_keys_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         },
         "one_time_keys_key_id_unique": {
           "name": "one_time_keys_key_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "key_id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -252,10 +250,10 @@
       "uniqueConstraints": {
         "users_id_unique": {
           "name": "users_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     }
@@ -263,8 +261,11 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "31719707-cea7-4bd9-9309-00496b7642df",
+  "prevId": "9f5f5e20-2e74-4f75-a3b0-75be18f630a3",
+  "sequences": {}
 }

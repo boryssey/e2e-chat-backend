@@ -1,10 +1,8 @@
 {
-  "id": "b041d99e-1443-4d11-a923-3e7b112cabe4",
-  "prevId": "6cc89010-1d62-4e89-9caa-e915130e427e",
-  "version": "5",
-  "dialect": "pg",
+  "version": "7",
+  "dialect": "postgresql",
   "tables": {
-    "key_bundles": {
+    "public.key_bundles": {
       "name": "key_bundles",
       "schema": "",
       "columns": {
@@ -57,29 +55,29 @@
         "key_bundles_user_id_users_id_fk": {
           "name": "key_bundles_user_id_users_id_fk",
           "tableFrom": "key_bundles",
-          "tableTo": "users",
           "columnsFrom": [
             "user_id"
           ],
+          "tableTo": "users",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "key_bundles_id_unique": {
           "name": "key_bundles_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "one_time_keys": {
+    "public.one_time_keys": {
       "name": "one_time_keys",
       "schema": "",
       "columns": {
@@ -113,29 +111,29 @@
         "one_time_keys_key_bundle_id_key_bundles_id_fk": {
           "name": "one_time_keys_key_bundle_id_key_bundles_id_fk",
           "tableFrom": "one_time_keys",
-          "tableTo": "key_bundles",
           "columnsFrom": [
             "key_bundle_id"
           ],
+          "tableTo": "key_bundles",
           "columnsTo": [
             "id"
           ],
-          "onDelete": "no action",
-          "onUpdate": "no action"
+          "onUpdate": "no action",
+          "onDelete": "no action"
         }
       },
       "compositePrimaryKeys": {},
       "uniqueConstraints": {
         "one_time_keys_id_unique": {
           "name": "one_time_keys_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     },
-    "users": {
+    "public.users": {
       "name": "users",
       "schema": "",
       "columns": {
@@ -177,10 +175,10 @@
       "uniqueConstraints": {
         "users_id_unique": {
           "name": "users_id_unique",
-          "nullsNotDistinct": false,
           "columns": [
             "id"
-          ]
+          ],
+          "nullsNotDistinct": false
         }
       }
     }
@@ -188,8 +186,11 @@
   "enums": {},
   "schemas": {},
   "_meta": {
-    "columns": {},
     "schemas": {},
-    "tables": {}
-  }
+    "tables": {},
+    "columns": {}
+  },
+  "id": "b041d99e-1443-4d11-a923-3e7b112cabe4",
+  "prevId": "6cc89010-1d62-4e89-9caa-e915130e427e",
+  "sequences": {}
 }
