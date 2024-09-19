@@ -11,6 +11,7 @@ services:
       - chate2e
     depends_on:
       - chate2e-db
+    labels: [ "com.centurylinklabs.watchtower.scope=chate2e" ] 
   
   chate2e-db:
     container_name: chate2e-db
@@ -27,6 +28,7 @@ services:
       - "5433:5432"
     networks:
       - chate2e
+    labels: [ "com.centurylinklabs.watchtower.scope=chate2e" ] 
 
   watchtower:
     container_name: chate2e-watchtower
@@ -36,8 +38,7 @@ services:
     volumes:
       - /var/run/docker.sock:/var/run/docker.sock
       # - ~/.docker/config.json:/config.json
-
-    command: --interval 30 chate2e-api
+    command: --interval 30 --scope chate2e chate2e
 
 volumes:
   chate2e-data:
