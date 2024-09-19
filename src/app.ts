@@ -13,6 +13,7 @@ import {type AppOptions} from './utils/types';
 import {verifyJwtCookie} from './utils/decorators';
 import {type User} from './schema';
 import onConnection from './socket.io';
+import {emitSavedMessagesToUser} from './socket.io/keyBundle';
 
 // Pass --options via CLI arguments in command to enable these options.
 const options: AppOptions = {};
@@ -71,7 +72,7 @@ const app: FastifyPluginAsync<AppOptions> = async (
 	fastify.ready().then(() => {
 		fastify.io.on('connection', async socket => {
 			onConnection(fastify.io, socket, fastify.drizzle);
-			// await emitSavedMessagesToUser(socket, fastify.drizzle);
+			await emitSavedMessagesToUser(socket, fastify.drizzle);
 		},
 		);
 	}, () => {

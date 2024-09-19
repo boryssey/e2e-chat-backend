@@ -1,0 +1,1 @@
+ALTER TABLE "one_time_keys" DROP CONSTRAINT "one_time_keys_key_id_unique";

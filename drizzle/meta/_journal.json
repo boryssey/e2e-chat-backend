@@ -64,6 +64,13 @@
       "when": 1720558426023,
       "tag": "0008_far_lizard",
       "breakpoints": true
+    },
+    {
+      "idx": 9,
+      "version": "5",
+      "when": 1726778369853,
+      "tag": "0009_closed_omega_sentinel",
+      "breakpoints": true
     }
   ]
 }

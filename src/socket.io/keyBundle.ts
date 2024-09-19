@@ -39,6 +39,8 @@ const registerKeyBundleHandlers: EventHandlerRegisterer = async (io, socket, dri
 					oneTimeKeys: newOneTimeKeys,
 				};
 			} catch (error) {
+				console.error(error);
+
 				tx.rollback();
 				throw error;
 			}

@@ -42,9 +42,9 @@ const registerMessageHandlers: EventHandlerRegisterer = (io, socket, drizzle) =>
 		await deleteReceivedMessages(drizzle, socket.data.user.id, data.lastReceivedMessageId);
 		return {success: true};
 	});
+	socket.on('message:send', handleSendMessage);
 
-	io.on('message:send', handleSendMessage);
-	io.on('message:ack', handleAckMessage);
+	socket.on('message:ack', handleAckMessage);
 };
 
 export default registerMessageHandlers;
