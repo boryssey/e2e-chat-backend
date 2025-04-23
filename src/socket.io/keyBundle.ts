@@ -70,7 +70,7 @@ const registerKeyBundleHandlers: EventHandlerRegisterer = async (io, socket, dri
 		const keyBundle = await getKeyBundleByUserId(drizzle, user.id);
 
 		// eslint-disable-next-line @typescript-eslint/ban-types
-		const isVerified = (data.identityPubKey as Buffer).equals(keyBundle.identity_pub_key as Buffer);
+		const isVerified = (data.identityPubKey as unknown as Buffer).equals(keyBundle.identity_pub_key as unknown as Buffer);
 
 		return {
 			success: true,
