@@ -37,6 +37,7 @@ WORKDIR /app
 FROM base AS prod
 
 COPY pnpm-lock.yaml ./
+COPY pnpm-workspace.yaml ./
 COPY package*.json ./
 
 RUN pnpm fetch --frozen-lockfile
