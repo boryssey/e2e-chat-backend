@@ -75,8 +75,8 @@ const app: FastifyPluginAsync<AppOptions> = async (
 			await emitSavedMessagesToUser(socket, fastify.drizzle);
 		},
 		);
-	}, () => {
-		console.log('ready error');
+	}, (error) => {
+		console.log('ready error', error);
 	});
 	await fastify.register(fastifyAuth, {defaultRelation: 'and'});
 	await fastify.register(AutoLoad, {
